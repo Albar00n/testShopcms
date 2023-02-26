@@ -91,7 +91,7 @@ export default function Home({ home, products }) {
 }
 
 export async function getStaticProps() {
-   const client = new ApolloClient({
+  const client = new ApolloClient({
     uri:
       'https://api-eu-west-2.hygraph.com/v2/clek1rew10v9p01tah37ofw8u/master',
     cache: new InMemoryCache(),
@@ -99,7 +99,7 @@ export async function getStaticProps() {
   const data = await client.query({
     query: gql`
       query PageHome {
-        page(where: { slug: "home" }) {
+        page(where: { slug: "about-page" }) {
           id
           heroLink
           heroText
@@ -111,13 +111,7 @@ export async function getStaticProps() {
             url
             height
           }
-          # localizations(locales: [$locale]) {
-          #   heroText
-          #   heroTitle
-          #   locale
-          # }
         }
-
         products(first: 4) {
           id
           name
@@ -134,12 +128,6 @@ export async function getStaticProps() {
   })
 
   const home = data.data.page
-  // if (home.localizations.length > 0) {
-  //   home = {
-  //     ...home,
-  //     ...home.localizations[0],
-  //   }
-  // }
   const products = data.data.products
   return {
     props: { home, products },

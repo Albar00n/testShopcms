@@ -1,13 +1,17 @@
 import Head from 'next/head'
-import { FaExternalLinkAlt } from 'react-icons/fa';
-
-import Layout from '@components/Layout';
-import Container from '@components/Container';
-import Button from '@components/Button';
+import { FaExternalLinkAlt } from 'react-icons/fa'
+import { ApolloClient, InMemoryCache, gql } from '@apollo/client'
+import Layout from '@components/Layout'
+import Container from '@components/Container'
+// import map from '@components/Map'
 
 import styles from '@styles/Page.module.scss'
+// import Map from '@components/Map'
 
-export default function Stores() {
+const position = [51.505, -0.09]
+
+export default function Stores({ storeLocations }) {
+  console.log('storeLocations', storeLocations)
   return (
     <Layout>
       <Head>
@@ -19,41 +23,94 @@ export default function Stores() {
         <h1>Locations</h1>
 
         <div className={styles.stores}>
-
           <div className={styles.storesLocations}>
             <ul className={styles.locations}>
-              <li>
-                <p className={styles.locationName}>
-                  Name
-                </p>
-                <address>
-                  Address
-                </address>
-                <p>
-                  1234567890
-                </p>
-                <p className={styles.locationDiscovery}>
-                  <button>
-                    View on Map
-                  </button>
-                  <a href="https://www.google.com/maps/" target="_blank" rel="noreferrer">
-                    Get Directions
-                    <FaExternalLinkAlt />
-                  </a>
-                </p>
-              </li>
+              {storeLocations.map((location) => {
+                return (
+                  <li key={location.id}>
+                    <p className={styles.locationName}>{location.name}</p>
+                    <address>{location.address}</address>
+                    <p>{location.phoneNumber}</p>
+                    <p className={styles.locationDiscovery}>
+                      <button>View on Map</button>
+                      <a
+                        href={`https://www.google.com/maps/dir//${location.location.latitude},${location.location.longitude}/@${location.location.latitude},${location.location.longitude},12z/`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Get Directions
+                        <FaExternalLinkAlt />
+                      </a>
+                    </p>
+                  </li>
+                )
+              })}
             </ul>
           </div>
 
           <div className={styles.storesMap}>
             <div className={styles.storesMapContainer}>
-              <div className={styles.map}>
-                Map
-              </div>
+              {/* <Map
+                className={styles.map}
+                center={position}
+                zoom={13}
+                scrollWheelZoom={false}
+              >
+                {({ TileLayer, Popup, Marker }, map) => {
+                  return (
+                    <>
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <Marker position={position}>
+                        <Popup>
+                          A pretty CSS3 popup. <br /> Easily customizable.
+                        </Popup>
+                      </Marker>
+                    </>
+                  )
+                }}
+              </Map> */}
             </div>
           </div>
         </div>
       </Container>
     </Layout>
   )
+}
+
+export async function getStaticProps() {
+  const client = new ApolloClient({
+    uri:
+      'https://api-eu-west-2.hygraph.com/v2/clek1rew10v9p01tah37ofw8u/master',
+    cache: new InMemoryCache(),
+  })
+  // console.log('params.productSlug', params.productSlug)
+
+  const data = await client.query({
+    query: gql`
+      query PageStores {
+        storeLocations {
+          address
+          id
+          name
+          phoneNumber
+          location {
+            latitude
+            longitude
+          }
+        }
+      }
+    `,
+  })
+  // console.log('data', data)
+
+  const storeLocations = data.data.storeLocations
+
+  return {
+    props: {
+      storeLocations,
+    },
+  }
 }
